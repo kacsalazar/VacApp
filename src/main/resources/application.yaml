@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    username: root
+    password: 1234
+    url: jdbc:postgresql://localhost:5432/bank_mock
+    driver-class-name: org.postgresql.Driver
+      #jpa:
+      #generate-ddl: none
+      #hibernate:
+    #ddl-auto: none #allowes for creation and modification of the database schema
+    #show-sql: true # prints sql statements to console
+    #cdatabase-platform: org.hibernate.dialect.PostgreSQL94Dialect
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+
+debug: false
