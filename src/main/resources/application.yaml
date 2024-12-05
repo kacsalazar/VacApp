@@ -15,3 +15,7 @@ spring:
       - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
 
 debug: false
+
+application:
+  variables:
+    bankidentificator: BANCO_A

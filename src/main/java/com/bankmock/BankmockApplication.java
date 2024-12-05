@@ -1,4 +1,4 @@
-package com.bankmock.bankmock;
+package com.bankmock;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

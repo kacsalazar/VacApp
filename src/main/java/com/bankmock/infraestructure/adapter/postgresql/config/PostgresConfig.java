@@ -1,4 +1,4 @@
-package com.bankmock.bankmock.infraestructure.postgresql.config;
+package com.bankmock.infraestructure.adapter.postgresql.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
