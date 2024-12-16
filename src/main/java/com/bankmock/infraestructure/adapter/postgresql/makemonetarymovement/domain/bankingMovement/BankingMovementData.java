@@ -27,4 +27,6 @@ public class BankingMovementData {
     private String token;
     @Column
     private String bank;
+    @Column
+    private String status;
 }

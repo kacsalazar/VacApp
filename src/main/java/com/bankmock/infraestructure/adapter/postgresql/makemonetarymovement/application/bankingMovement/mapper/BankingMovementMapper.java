@@ -11,11 +11,13 @@ public class BankingMovementMapper {
     public static BankingMovementData toData (BankingMovement movement){
 
         BankingMovementData data = BankingMovementData.builder()
+                .id(movement.getId())
                 .typeMovement(movement.getTypeMovement())
                 .customerAccountId(movement.getCustomerAccountId())
                 .amount(movement.getAmount())
                 .token(movement.getToken())
                 .bank(movement.getBank())
+                .status(movement.getStatus())
                 .build();
 
         return data;
@@ -24,6 +26,7 @@ public class BankingMovementMapper {
     public  static BankingMovement toEntity (BankingMovementData movementData){
 
         BankingMovement data = BankingMovement.builder()
+                .id(movementData.getId())
                 .typeMovement(movementData.getTypeMovement())
                 .customerAccountId(movementData.getCustomerAccountId())
                 .amount(movementData.getAmount())

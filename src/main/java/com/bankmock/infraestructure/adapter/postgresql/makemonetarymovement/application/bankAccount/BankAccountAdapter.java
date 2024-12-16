@@ -35,11 +35,4 @@ public class BankAccountAdapter implements IBankAccountGateway {
     public BankAccount findAccountById(Long id) {
         return BankAccountMapper.toEntity(this.bankAccountRepository.findById(id).get());
     }
-
-    /*@Override
-    public void debitAccount(String noAccount, BigDecimal amount) {
-        BankAccountData account = this.bankAccountRepository.findByNoAccount(noAccount);
-        account.setAmount(account.getAmount().subtract(amount));
-        this.bankAccountRepository.save(account);
-    }*/
 }

@@ -19,5 +19,6 @@ public class BankingMovement {
     private BigDecimal amount;
     private String token;
     private String bank;
+    private String status;
 
 }

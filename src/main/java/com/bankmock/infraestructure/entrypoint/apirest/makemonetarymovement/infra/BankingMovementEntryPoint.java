@@ -17,8 +17,6 @@ public class BankingMovementEntryPoint {
     @PostMapping()
     public ResponseEntity<BankingMovementResponse> createMovement
             (@RequestBody BankingMovementRequest movementRequest, @RequestHeader String commercialAlly){
-        System.out.println("ENTRA AL CONTROLLER");
-
         return ResponseEntity.ok(this.bankingMovementHandler.createMovement(movementRequest, commercialAlly));
     }
 }

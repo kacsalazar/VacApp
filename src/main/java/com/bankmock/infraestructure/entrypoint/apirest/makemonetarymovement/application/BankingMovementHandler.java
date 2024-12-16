@@ -19,7 +19,6 @@ public class BankingMovementHandler {
     public BankingMovementResponse createMovement(BankingMovementRequest movementRequest, String commercialAlly){
 
         BankingMovementEntityRequest bankingMovement = BankingMovementMapper.toEntity(movementRequest);
-        log.info("OBJETO OMPLETO HANDLER" + bankingMovement);
         BankingMovementEntityResponse bmEntityResponse = this.bankingMovementCreator.createMovement(bankingMovement, commercialAlly);
 
         return BankingMovementMapper.toResponse(bmEntityResponse);

@@ -22,49 +22,50 @@ public class BankingMovementCreator {
 
     private final IBankingMovementGateway iBankingMovementGateway;
     private final BankingMovementValidator bankingMovementValidator;
-    private final IBankAccountGateway iBankAccountGateway;
+
 
     private static final Logger logger = LoggerFactory.getLogger(BankingMovementCreator.class);
 
     public BankingMovementEntityResponse createMovement (BankingMovementEntityRequest movement, String commercialAlly){
 
-        TokenAccount sourceAccount = this.bankingMovementValidator.
-                validateToken(movement.getDataInfo().getCustomerData().getTokenBaas(), commercialAlly);
-        BankAccount bankAccount = this.iBankAccountGateway.findAccountById(sourceAccount.getIdAccount());
-
-        this.bankingMovementValidator.isAccountValid(movement, sourceAccount.getIdAccount());
-        this.bankingMovementValidator.debitAccount(movement.getDataInfo().getMovementInfo().getAmount(),
-                bankAccount);
-        //dato mockeado indicando
-        this.bankingMovementValidator.validateBank(movement, bankAccount.getId());
+        BankAccount bankAccount = this.bankingMovementValidator.validateMovement(movement, commercialAlly);
 
         BankingMovement movementCustomer = this.getAccountsToMovement(movement,
                 bankAccount, "Debit");
-        this.iBankingMovementGateway.createMovement(movementCustomer);
+        BankingMovement bankingMovement = this.iBankingMovementGateway.createMovement(movementCustomer);
+
+        log.info("BANCO EN CREATOR " + bankingMovement);
+        this.bankingMovementValidator.identifyBank(movement, bankAccount.getId(), bankingMovement.getId());
+
+        return this.createResponse(movement.getMeta().getMessageId());
+    }
+
+    private BankingMovement getAccountsToMovement(BankingMovementEntityRequest movementInfo, BankAccount noSourceAccount, String typeMovement){
+
+        logger.info("Se inicia el proceso de crear moviemiento");
+
+        BankingMovement movement = BankingMovement.builder()
+                .typeMovement(typeMovement)
+                .customerAccountId(noSourceAccount.getId())
+                .amount(movementInfo.getDataInfo().getMovementInfo().getAmount())
+                .token(movementInfo.getDataInfo().getClientData().getTokenBaas())
+                .bank(movementInfo.getDataInfo().getClientData().getBank())
+                .status("IN_PROGRESS")
+                .build();
+
+        return movement;
+    }
+
+    private BankingMovementEntityResponse createResponse(String messageId){
 
         BankingMovementEntityResponse.Meta meta = BankingMovementEntityResponse.Meta.builder()
-                .messageId(movement.getMeta().getMessageId())
+                .messageId(messageId)
                 .date(new Date())
                 .build();
 
         return  BankingMovementEntityResponse.builder()
                 .meta(meta)
                 .build();
-
-    }
-
-    public BankingMovement getAccountsToMovement(BankingMovementEntityRequest movementInfo, BankAccount noSourceAccount, String typeMovement){
-
-        logger.info("Se inicia el proceso de crear moviemiento");
-
-        BankingMovement movement = new BankingMovement();
-        movement.setTypeMovement(typeMovement);
-        movement.setCustomerAccountId(noSourceAccount.getId());
-        movement.setAmount(movementInfo.getDataInfo().getMovementInfo().getAmount());
-        movement.setToken(movementInfo.getDataInfo().getClientData().getTokenBaas());
-        movement.setBank(movementInfo.getDataInfo().getClientData().getBank());
-
-        return movement;
     }
 
 }
