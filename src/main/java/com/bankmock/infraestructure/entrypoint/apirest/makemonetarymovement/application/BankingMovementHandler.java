@@ -2,7 +2,7 @@ package com.bankmock.infraestructure.entrypoint.apirest.makemonetarymovement.app
 
 import com.bankmock.domain.model.createbankingmovement.bankingMovement.BankingMovementEntityRequest;
 import com.bankmock.domain.model.createbankingmovement.bankingMovement.BankingMovementEntityResponse;
-import com.bankmock.domain.usecase.createbankingmovement.BankingMovementCreator;
+import com.bankmock.domain.usecase.createbankingmovement.createdebit.DebitCreator;
 import com.bankmock.infraestructure.entrypoint.apirest.makemonetarymovement.domain.BankingMovementRequest;
 import com.bankmock.infraestructure.entrypoint.apirest.makemonetarymovement.domain.BankingMovementResponse;
 import lombok.AllArgsConstructor;
@@ -14,12 +14,12 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 public class BankingMovementHandler {
 
-    private final BankingMovementCreator bankingMovementCreator;
+    private final DebitCreator debitCreator;
 
     public BankingMovementResponse createMovement(BankingMovementRequest movementRequest, String commercialAlly){
 
         BankingMovementEntityRequest bankingMovement = BankingMovementMapper.toEntity(movementRequest);
-        BankingMovementEntityResponse bmEntityResponse = this.bankingMovementCreator.createMovement(bankingMovement, commercialAlly);
+        BankingMovementEntityResponse bmEntityResponse = this.debitCreator.createMovement(bankingMovement, commercialAlly);
 
         return BankingMovementMapper.toResponse(bmEntityResponse);
     }

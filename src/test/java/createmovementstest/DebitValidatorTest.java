@@ -4,7 +4,7 @@ import com.bankmock.domain.model.createbankingmovement.IExternalBankConsumer;
 import com.bankmock.domain.model.createbankingmovement.bankAccount.BankAccount;
 import com.bankmock.domain.model.createbankingmovement.bankAccount.IBankAccountGateway;
 import com.bankmock.domain.model.createtoken.ITokenGateway;
-import com.bankmock.domain.usecase.createbankingmovement.BankingMovementValidator;
+import com.bankmock.domain.usecase.createbankingmovement.createdebit.DebitValidator;
 import com.bankmock.domain.usecase.createbankingmovement.CreditMovement;
 import com.bankmock.domain.usecase.createbankingmovement.DebitMovement;
 import org.junit.jupiter.api.*;
@@ -15,7 +15,7 @@ import org.mockito.MockitoAnnotations;
 
 import static org.mockito.Mockito.*;
 
-public class BankingMovementValidatorTest {
+public class DebitValidatorTest {
 
     @Mock
     IBankAccountGateway iBankAccountGateway;
@@ -29,7 +29,7 @@ public class BankingMovementValidatorTest {
     DebitMovement debitMovement;
 
     @InjectMocks
-    private BankingMovementValidator bankingMovementValidator;
+    private DebitValidator debitValidator;
 
     @BeforeEach
     void init() {
@@ -40,14 +40,14 @@ public class BankingMovementValidatorTest {
     @Test
     void validateMovement(){
 
-        doReturn("").when(bankingMovementValidator).validateToken(0);
+        doReturn("").when(debitValidator).validateToken(0);
         when(iBankAccountGateway.findAccountById(null)).thenReturn(null);
-        doNothing().when(bankingMovementValidator).isAcountValid(null, null);
-        doNothing().when(bankingMovementValidator).isAcountValid(null, null);
+        doNothing().when(debitValidator).isAcountValid(null, null);
+        doNothing().when(debitValidator).isAcountValid(null, null);
 
         doNothing().when(debitMovement).debitAccount(null, null);
 
-        BankAccount result = bankingMovementValidator.validateMovement(null, null);
+        BankAccount result = debitValidator.validateMovement(null, null);
 
         //validar resultados
         assertNotNull(result);
