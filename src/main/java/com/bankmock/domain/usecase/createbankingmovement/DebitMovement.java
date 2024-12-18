@@ -15,8 +15,5 @@ public class DebitMovement {
 
     private final IBankAccountGateway iBankAccountGateway;
 
-    public void debitAccount(BigDecimal amount, BankAccount account){
-        account.setAmount(account.getAmount().subtract(amount));
-        this.iBankAccountGateway.saveAmountAccount(account);
-    }
+
 }

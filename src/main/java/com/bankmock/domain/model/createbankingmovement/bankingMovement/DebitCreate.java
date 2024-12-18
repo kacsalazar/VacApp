@@ -10,7 +10,7 @@ import java.util.Date;
 @NoArgsConstructor
 @Data
 @Builder
-public class BankingMovementEntityRequest {
+public class DebitCreate {
 
     private Meta meta;
     private DataInfo dataInfo;

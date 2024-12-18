@@ -37,43 +37,6 @@ public class DebitValidatorTest {
 
     }
 
-    @Test
-    void validateMovement(){
-
-        doReturn("").when(debitValidator).validateToken(0);
-        when(iBankAccountGateway.findAccountById(null)).thenReturn(null);
-        doNothing().when(debitValidator).isAcountValid(null, null);
-        doNothing().when(debitValidator).isAcountValid(null, null);
-
-        doNothing().when(debitMovement).debitAccount(null, null);
-
-        BankAccount result = debitValidator.validateMovement(null, null);
-
-        //validar resultados
-        assertNotNull(result);
-        assertEquals(mockBankAccount, result);
-
-        // Verificación de interacciones
-        verify(iBankAccountGateway).findAccountById("account123");
-        verify(debitMovement).debitAccount(anyDouble(), eq(mockBankAccount));
-
-
-        /*
-        *     public BankAccount validateMovement(BankingMovementEntityRequest movement, String commercialAlly){
-
-        TokenAccount sourceAccount = this.
-                validateToken(movement.getDataInfo().getCustomerData().getTokenBaas(), commercialAlly);
-        BankAccount bankAccount = this.iBankAccountGateway.findAccountById(sourceAccount.getIdAccount());
-
-        this.isAccountValid(movement, sourceAccount.getIdAccount());
-        this.debitMovement.debitAccount(movement.getDataInfo().getMovementInfo().getAmount(),
-                bankAccount);
-
-        return bankAccount;
-
-    }*/
-    }
-
 /*
     @Test
     void testValidateDifferentBank_Success() {

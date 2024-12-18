@@ -1,52 +1,52 @@
 package com.bankmock.infraestructure.entrypoint.apirest.makemonetarymovement.application;
 
-import com.bankmock.domain.model.createbankingmovement.bankingMovement.BankingMovementEntityRequest;
+import com.bankmock.domain.model.createbankingmovement.bankingMovement.DebitCreate;
 import com.bankmock.domain.model.createbankingmovement.bankingMovement.BankingMovementEntityResponse;
 import com.bankmock.infraestructure.entrypoint.apirest.makemonetarymovement.domain.BankingMovementRequest;
 import com.bankmock.infraestructure.entrypoint.apirest.makemonetarymovement.domain.BankingMovementResponse;
-import org.springframework.stereotype.Component;
+import lombok.experimental.UtilityClass;
 
-@Component
+@UtilityClass
 public class BankingMovementMapper {
 
-    public static BankingMovementEntityRequest toEntity(BankingMovementRequest movementRequest){
+    public static DebitCreate toEntity(BankingMovementRequest movementRequest){
 
-        BankingMovementEntityRequest.CustomerInfo customerInfo = BankingMovementEntityRequest.CustomerInfo
+        DebitCreate.CustomerInfo customerInfo = DebitCreate.CustomerInfo
                 .builder()
                 .docNumber(movementRequest.getDataInfo().getCustomerData().getCustomerInfo().getDocNumber())
                 .docType(movementRequest.getDataInfo().getCustomerData().getCustomerInfo().getDocType())
                 .build();
 
-        BankingMovementEntityRequest.CustomerData customerData = BankingMovementEntityRequest.CustomerData
+        DebitCreate.CustomerData customerData = DebitCreate.CustomerData
                 .builder()
                 .tokenBaas(movementRequest.getDataInfo().getCustomerData().getTokenBaas())
                 .customerInfo(customerInfo)
                 .build();
 
-        BankingMovementEntityRequest.ClientData clientData = BankingMovementEntityRequest.ClientData
+        DebitCreate.ClientData clientData = DebitCreate.ClientData
                 .builder()
                 .bank(movementRequest.getDataInfo().getClientData().getBank())
                 .customerInfo(customerInfo)
                 .tokenBaas(movementRequest.getDataInfo().getClientData().getTokenBaas())
                 .build();
 
-        BankingMovementEntityRequest.MovementInfo movementInfo = BankingMovementEntityRequest.MovementInfo
+        DebitCreate.MovementInfo movementInfo = DebitCreate.MovementInfo
                 .builder()
                 .amount(movementRequest.getDataInfo().getMovementInfo().getAmount())
                 .build();
 
-        BankingMovementEntityRequest.Meta meta = BankingMovementEntityRequest.Meta.builder()
+        DebitCreate.Meta meta = DebitCreate.Meta.builder()
                 .messageId(movementRequest.getMeta().getMessageId())
                 .date(movementRequest.getMeta().getDate())
                 .build();
 
-        BankingMovementEntityRequest.DataInfo dataInfo = BankingMovementEntityRequest.DataInfo.builder()
+        DebitCreate.DataInfo dataInfo = DebitCreate.DataInfo.builder()
                 .customerData(customerData)
                 .movementInfo(movementInfo)
                 .clientData(clientData)
                 .build();
 
-        BankingMovementEntityRequest entity = BankingMovementEntityRequest.builder()
+        DebitCreate entity = DebitCreate.builder()
                 .dataInfo(dataInfo)
                 .meta(meta)
                 .build();
