@@ -51,7 +51,7 @@ class DebitCreatorTest {
         DebitCreate debitCreate = DebitCreate.builder()
                 .sourceTokenBass("asd1234")
                 .sourceDocNumber("234")
-                .targetBank("BANCO_A")
+                .targetBank("BANCO_B")
                 .targetDocNumber("456")
                 .targetTokenBass("qwe7894")
                 .amount(new BigDecimal(200000))
@@ -73,7 +73,7 @@ class DebitCreatorTest {
                 .customerAccountId(1L)
                 .amount(new BigDecimal(200000))
                 .token("asd1234")
-                .bank("BANCO_A")
+                .bank("BANCO_B")
                 .status("SUCCESSFUL")
                 .build();
 
@@ -83,7 +83,7 @@ class DebitCreatorTest {
         when(iBankAccountGateway.findAccountById(1L))
                 .thenReturn(account);
         when(iBankingMovementGateway.createMovement(movement))
-                .thenReturn(123L);
+                .thenReturn(null);
 
         when(iExternalBankConsumer.notifyBank())
                 .thenReturn(Boolean.FALSE);
