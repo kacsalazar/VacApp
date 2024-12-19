@@ -19,10 +19,9 @@ public class BankingMovementAdapter implements IBankingMovementGateway {
     private final BankingMovementRepository bankingMovementRepository;
 
     @Override
-    public BankingMovement createMovement(BankingMovement movement) {
+    public Long createMovement(BankingMovement movement) {
         BankingMovementData movementData = BankingMovementMapper.toData(movement);
-        log.info("EN DATA"+movementData);
-        return BankingMovementMapper.toEntity(this.bankingMovementRepository.save(movementData));
+        return BankingMovementMapper.toEntity(this.bankingMovementRepository.save(movementData)).getId();
     }
 
     @Override

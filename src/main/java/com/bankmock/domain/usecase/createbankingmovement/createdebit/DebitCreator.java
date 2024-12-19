@@ -5,24 +5,16 @@ import com.bankmock.domain.model.createbankingmovement.bankAccount.BankAccount;
 import com.bankmock.domain.model.createbankingmovement.bankAccount.IBankAccountGateway;
 import com.bankmock.domain.model.createbankingmovement.bankingMovement.BankingMovement;
 import com.bankmock.domain.model.createbankingmovement.bankingMovement.DebitCreate;
-import com.bankmock.domain.model.createbankingmovement.bankingMovement.BankingMovementEntityResponse;
 import com.bankmock.domain.model.createbankingmovement.bankingMovement.IBankingMovementGateway;
 import com.bankmock.domain.model.createtoken.ITokenGateway;
 import com.bankmock.domain.model.createtoken.Token;
 import com.bankmock.domain.model.shared.exception.AppException;
 import com.bankmock.domain.model.shared.exception.ConstantException;
 import com.bankmock.domain.usecase.createbankingmovement.CreditMovement;
-import com.bankmock.domain.usecase.createbankingmovement.createdebit.mapper.DebitCreatorMapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
-import java.util.Date;
-
 import static com.bankmock.domain.usecase.createbankingmovement.createdebit.mapper.DebitCreatorMapper.buildMovementModel;
 
 @Service
@@ -39,17 +31,15 @@ public class DebitCreator {
 
     public void createMovement (DebitCreate movement, String commercialAlly){
 
-        BankAccount bankAccount = debitValidator.validateMovement(movement, commercialAlly);
+        Long idBankAccount =
+                debitValidator.validateMovement(movement, commercialAlly);
         // TODO: 17/12/24 Recuperar cuenta de cliente acá, quitarlo de debir validator
-        debitAccount(movement.getDataInfo().getMovementInfo().getAmount(),
-                bankAccount);
+        BankAccount bankAccount = this.iBankAccountGateway.findAccountById(idBankAccount);
+        debitAccount(movement.getAmount(), bankAccount);
         BankingMovement movementCustomer = buildMovementModel(movement,
                 bankAccount, "Debit");
-        // TODO: 18/12/24 Recuperar y moven entre dependencias solo información necesaria.
-        String idRegistreredMovement = iBankingMovementGateway.createMovement(movementCustomer);
-
-        log.info("BANCO EN CREATOR " + idRegistreredMovement);
-        identifyBankOfCreditUser(movement, bankAccount.getId(), idRegistreredMovement);
+        Long idRegisteredMovement = iBankingMovementGateway.createMovement(movementCustomer);
+        identifyBankOfCreditUser(movement, bankAccount.getId(), idRegisteredMovement);
     }
 
     private void debitAccount(BigDecimal amount, BankAccount account){
@@ -60,13 +50,12 @@ public class DebitCreator {
     private void identifyBankOfCreditUser(DebitCreate bmEntityRequest,
                                           Long idSourceAccount, Long idMovement){
         String bank = "BANCO_A";
-        if(bank.equals(bmEntityRequest.getDataInfo().getClientData().getBank())){
-            creditToCustomer(bmEntityRequest.getDataInfo().getClientData().getTokenBaas(),
-                    bmEntityRequest.getDataInfo().getMovementInfo().getAmount(), idMovement);
+        if(bank.equals(bmEntityRequest.getTargetBank())){
+            creditToCustomer(bmEntityRequest.getTargetTokenBass(),
+                    bmEntityRequest.getAmount(), idMovement);
 
         }else {
-            notifyCreditToDifferentBank(
-                    bmEntityRequest.getDataInfo().getMovementInfo().getAmount(),
+            notifyCreditToDifferentBank(bmEntityRequest.getAmount(),
                     idSourceAccount, idMovement);
         }
     }

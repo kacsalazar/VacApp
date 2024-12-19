@@ -12,6 +12,6 @@ public class ExternalBankConsumer implements IExternalBankConsumer {
 
     @Override
     public Boolean notifyBank() {
-        return false;
+        return true;
     }
 }

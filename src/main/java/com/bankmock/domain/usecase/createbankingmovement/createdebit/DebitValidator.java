@@ -19,15 +19,13 @@ public class DebitValidator {
     private final IBankAccountGateway iBankAccountGateway;
     private final ITokenGateway iTokenGateway;
 
-    public BankAccount validateMovement(DebitCreate movement, String commercialAlly){
+    public Long validateMovement(DebitCreate movement, String commercialAlly){
 
         TokenAccount sourceAccount = this.
-                getAccountByToken(movement.getDataInfo().getCustomerData().getTokenBaas(), commercialAlly);
-        BankAccount bankAccount = this.iBankAccountGateway.findAccountById(sourceAccount.getIdAccount());
-
+                getAccountByToken(movement.getSourceTokenBass(), commercialAlly);
         this.validateAccount(movement, sourceAccount.getIdAccount());
 
-        return bankAccount;
+        return sourceAccount.getIdAccount();
 
     }
 
@@ -41,7 +39,7 @@ public class DebitValidator {
             throw new AppException(ConstantException.INVALID_ACCOUNT);
         }
         if (account.getAmount().compareTo(debitCreate
-                .getDataInfo().getMovementInfo().getAmount()) < 1) {
+                .getAmount()) < 1) {
             throw new AppException(ConstantException.INSUFFICIENT_AMOUNT);
         }
         //debitAccount(bankingMovementEntityRequest.getDataInfo().getMovementInfo().getAmount(), account);

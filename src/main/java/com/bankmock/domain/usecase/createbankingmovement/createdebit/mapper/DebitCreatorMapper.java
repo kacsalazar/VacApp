@@ -14,9 +14,9 @@ public class DebitCreatorMapper {
         return BankingMovement.builder()
                 .typeMovement(typeMovement)
                 .customerAccountId(noSourceAccount.getId())
-                .amount(movementInfo.getDataInfo().getMovementInfo().getAmount())
-                .token(movementInfo.getDataInfo().getClientData().getTokenBaas())
-                .bank(movementInfo.getDataInfo().getClientData().getBank())
+                .amount(movementInfo.getAmount())
+                .token(movementInfo.getTargetTokenBass())
+                .bank(movementInfo.getTargetBank())
                 .status("IN_PROGRESS")
                 .build();
     }
