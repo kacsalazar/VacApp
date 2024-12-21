@@ -21,7 +21,7 @@ public class BankingMovementHandler {
     public BankingMovementResponse createMovement(BankingMovementRequest movementRequest, String commercialAlly){
 
         DebitCreate bankingMovement = BankingMovementMapper.toEntity(movementRequest);
-        debitCreator.createMovement(bankingMovement, commercialAlly);
+        debitCreator.debit(bankingMovement, commercialAlly);
 
         return buildSuccessResponse(movementRequest.getMeta().getMessageId());
     }

@@ -1,8 +1,12 @@
 package com.bankmock.domain.model.shared.exception;
 
+
+import lombok.Getter;
+
+@Getter
 public class AppException extends RuntimeException{
 
-    private static ConstantException constant;
+    private ConstantException constant;
 
     public AppException(ConstantException exception){
         super(exception.getError_message());

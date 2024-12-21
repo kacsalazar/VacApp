@@ -6,11 +6,9 @@ import com.bankmock.domain.model.createbankingmovement.bankAccount.IBankAccountG
 import com.bankmock.domain.model.createbankingmovement.bankingMovement.BankingMovement;
 import com.bankmock.domain.model.createbankingmovement.bankingMovement.DebitCreate;
 import com.bankmock.domain.model.createbankingmovement.bankingMovement.IBankingMovementGateway;
-import com.bankmock.domain.model.createtoken.ITokenGateway;
-import com.bankmock.domain.model.createtoken.Token;
 import com.bankmock.domain.model.shared.exception.AppException;
 import com.bankmock.domain.model.shared.exception.ConstantException;
-import com.bankmock.domain.usecase.createbankingmovement.CreditMovement;
+import com.bankmock.domain.usecase.createbankingmovement.creditcreate.CreditCreator;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -22,28 +20,28 @@ import static com.bankmock.domain.usecase.createbankingmovement.createdebit.mapp
 @AllArgsConstructor
 public class DebitCreator {
 
-    private final IExternalBankConsumer iExternalBankConsumer;
-    private final CreditMovement creditMovement;
     private final IBankingMovementGateway iBankingMovementGateway;
     private final DebitValidator debitValidator;
     private final IBankAccountGateway iBankAccountGateway;
-    private final ITokenGateway iTokenGateway;
+    private final CreditCreator creditCreator;
+    private final IExternalBankConsumer creditToExternalUser;
 
-    public void createMovement (DebitCreate movement, String commercialAlly){
+    public void debit(DebitCreate movement, String commercialAlly){
 
-        Long idBankAccount =
-                debitValidator.validateMovement(movement, commercialAlly);
+        BankAccount accountToDebit = debitValidator.validateMovementAndGetAccount(movement, commercialAlly);
         // TODO: 17/12/24 Recuperar cuenta de cliente acá, quitarlo de debir validator
-        BankAccount bankAccount = this.iBankAccountGateway.findAccountById(idBankAccount);
-        debitAccount(movement.getAmount(), bankAccount);
-        BankingMovement movementCustomer = buildMovementModel(movement,
-                bankAccount, "Debit");
-        BankingMovement registeredMovement = iBankingMovementGateway.createMovement(movementCustomer);
-        Boolean isSuccessful = identifyBankOfCreditUser(movement, bankAccount.getId(), registeredMovement);
+        debitAccount(movement.getAmount(), accountToDebit);
+
+        BankingMovement registeredMovement = iBankingMovementGateway.createMovement(
+                buildMovementModel(movement, accountToDebit, "Debit"));
+
+        Boolean isSuccessful = creditToTargetUser(movement);
 
         if (isSuccessful.equals(Boolean.FALSE)) {
-            throw new AppException(ConstantException.PAYMENT_FAILED);
+            reverseDebit(accountToDebit, registeredMovement);
         }
+        registeredMovement.setStatus("SUCCESSFUL");
+        iBankingMovementGateway.updateBankingMovement(registeredMovement);
     }
 
     private void debitAccount(BigDecimal amount, BankAccount account){
@@ -51,48 +49,25 @@ public class DebitCreator {
         this.iBankAccountGateway.saveAmountAccount(account);
     }
 
-    private Boolean identifyBankOfCreditUser(DebitCreate bmEntityRequest,
-                                          Long idSourceAccount, BankingMovement movement){
+    private Boolean creditToTargetUser(DebitCreate bmEntityRequest){
         String bank = "BANCO_A";
-        if(bank.equals(bmEntityRequest.getTargetBank())){
-            return creditToCustomer(bmEntityRequest.getTargetTokenBass(),
-                    bmEntityRequest.getAmount(), movement);
+        Boolean isOurBank = bank.equals(bmEntityRequest.getTargetBank());
 
+        if(Boolean.TRUE.equals(isOurBank)){
+            return creditCreator.byToken(bmEntityRequest.getTargetTokenBass(),
+                    bmEntityRequest.getAmount());
         }else {
-            return notifyCreditToDifferentBank(bmEntityRequest.getAmount(),
-                    idSourceAccount, movement);
+            return creditToExternalUser.notifyBank();
         }
     }
 
-    private Boolean creditToCustomer(String tokenBaas, BigDecimal amount, BankingMovement movement){
+    private void reverseDebit(BankAccount bankAccountToReverse, BankingMovement movementToSetFailedStatus){
+        movementToSetFailedStatus.setStatus("FAILED");
+        iBankingMovementGateway.updateBankingMovement(movementToSetFailedStatus);
 
-        Token token = this.iTokenGateway.findByToken(tokenBaas);
-        BankAccount bankAccount = this.iBankAccountGateway.findAccountById(token.getIdAccount());
-        this.creditMovement.creditAccount(amount, bankAccount);
-        movement.setStatus("SUCCESSFUL");
-        this.iBankingMovementGateway.updateBankingMovement(movement);
-        System.out.println("Transfer was made to the same bank account");
+        creditCreator.byAccount(bankAccountToReverse, movementToSetFailedStatus.getAmount());
 
-        return true;
-    }
-
-    private Boolean notifyCreditToDifferentBank(BigDecimal amount, Long idSourceAccount, BankingMovement movement){
-
-        Boolean status;
-
-        Boolean isNotificationSuccess = this.iExternalBankConsumer.notifyBank();
-        if(isNotificationSuccess.equals(Boolean.FALSE)){
-            BankAccount bankAccount = this.iBankAccountGateway.findAccountById(idSourceAccount);
-            this.creditMovement.creditAccount(amount, bankAccount);
-            movement.setStatus("FAILED");
-            status = false;
-        }else {
-            movement.setStatus("SUCCESSFUL");
-            status = true;
-        }
-        this.iBankingMovementGateway.updateBankingMovement(movement);
-
-        return status;
+        throw new AppException(ConstantException.PAYMENT_FAILED);
     }
 
 }

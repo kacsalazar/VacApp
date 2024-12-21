@@ -1,19 +1,16 @@
 package createmovementstest;
 
 import com.bankmock.domain.model.createbankingmovement.IExternalBankConsumer;
-import com.bankmock.domain.model.createbankingmovement.bankAccount.BankAccount;
 import com.bankmock.domain.model.createbankingmovement.bankAccount.IBankAccountGateway;
 import com.bankmock.domain.model.createtoken.ITokenGateway;
 import com.bankmock.domain.usecase.createbankingmovement.createdebit.DebitValidator;
-import com.bankmock.domain.usecase.createbankingmovement.CreditMovement;
+import com.bankmock.domain.usecase.createbankingmovement.creditcreate.CreditCreator;
 import com.bankmock.domain.usecase.createbankingmovement.DebitMovement;
 import org.junit.jupiter.api.*;
 //import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
-import static org.mockito.Mockito.*;
 
 public class DebitValidatorTest {
 
@@ -24,7 +21,7 @@ public class DebitValidatorTest {
     @Mock
     IExternalBankConsumer iExternalBankConsumer;
     @Mock
-    CreditMovement creditMovement;
+    CreditCreator creditCreator;
     @Mock
     DebitMovement debitMovement;
 

@@ -8,7 +8,7 @@ import com.bankmock.domain.model.createbankingmovement.bankingMovement.DebitCrea
 import com.bankmock.domain.model.createbankingmovement.bankingMovement.IBankingMovementGateway;
 import com.bankmock.domain.model.createtoken.ITokenGateway;
 import com.bankmock.domain.model.shared.exception.AppException;
-import com.bankmock.domain.usecase.createbankingmovement.CreditMovement;
+import com.bankmock.domain.usecase.createbankingmovement.creditcreate.CreditCreator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -20,7 +20,6 @@ import java.math.BigDecimal;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static com.bankmock.domain.usecase.createbankingmovement.createdebit.mapper.DebitCreatorMapper.buildMovementModel;
 
 
 class DebitCreatorTest {
@@ -28,7 +27,7 @@ class DebitCreatorTest {
     @Mock
     IExternalBankConsumer iExternalBankConsumer;
     @Mock
-    CreditMovement creditMovement;
+    CreditCreator creditCreator;
     @Mock
     IBankingMovementGateway iBankingMovementGateway;
     @Mock
@@ -78,8 +77,8 @@ class DebitCreatorTest {
                 .build();
 
         //when
-        when(debitValidator.validateMovement(debitCreate, commercialAlly))
-                .thenReturn(1L);
+        when(debitValidator.validateMovementAndGetAccount(debitCreate, commercialAlly))
+                .thenReturn(null);
         when(iBankAccountGateway.findAccountById(1L))
                 .thenReturn(account);
         when(iBankingMovementGateway.createMovement(movement))
@@ -88,11 +87,11 @@ class DebitCreatorTest {
         when(iExternalBankConsumer.notifyBank())
                 .thenReturn(Boolean.FALSE);
 
-        debitCreator.createMovement(debitCreate, commercialAlly);
+        debitCreator.debit(debitCreate, commercialAlly);
 
         //then
         assertThrows(AppException.class, () -> debitCreator
-                .createMovement(debitCreate, commercialAlly));
+                .debit(debitCreate, commercialAlly));
 
     }
 

@@ -7,48 +7,41 @@ import com.bankmock.domain.model.createtoken.ITokenGateway;
 import com.bankmock.domain.model.createtoken.TokenAccount;
 import com.bankmock.domain.model.shared.exception.AppException;
 import com.bankmock.domain.model.shared.exception.ConstantException;
+import com.bankmock.domain.usecase.createbankingmovement.shared.accountretrievebytoken.AccountRetrieveByToken;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
 
 @Service
 @Slf4j
 @AllArgsConstructor
 public class DebitValidator {
 
-    private final IBankAccountGateway iBankAccountGateway;
-    private final ITokenGateway iTokenGateway;
+    private final AccountRetrieveByToken accountRetrieveByToken;
 
-    public Long validateMovement(DebitCreate movement, String commercialAlly){
+    public BankAccount validateMovementAndGetAccount(DebitCreate movement, String businessPartner){
 
-        TokenAccount sourceAccount = this.
-                getAccountByToken(movement.getSourceTokenBass(), commercialAlly);
-        this.validateAccount(movement, sourceAccount.getIdAccount());
+        BankAccount bankAccount = accountRetrieveByToken.retrieve(movement.getSourceTokenBass(),
+                businessPartner);
+        validateAccount(movement.getAmount(), bankAccount);
 
-        return sourceAccount.getIdAccount();
-
+        return bankAccount;
     }
 
-    private void validateAccount(DebitCreate debitCreate, Long idAccount){
+    private void validateAccount(BigDecimal amountToDebit, BankAccount account){
 
-        BankAccount account = this.iBankAccountGateway.findAccountById(idAccount);
         if (account==null) {
             throw new AppException(ConstantException.NONEXISTENT_ACCOUNT);
         }
         if (account.getIsActive().equals(Boolean.FALSE)){
             throw new AppException(ConstantException.INVALID_ACCOUNT);
         }
-        if (account.getAmount().compareTo(debitCreate
-                .getAmount()) < 1) {
+        if (account.getAmount().compareTo(amountToDebit) < 1) {
             throw new AppException(ConstantException.INSUFFICIENT_AMOUNT);
         }
         //debitAccount(bankingMovementEntityRequest.getDataInfo().getMovementInfo().getAmount(), account);
-    }
-
-    private TokenAccount getAccountByToken(String token, String commercialAlly){
-        TokenAccount completeToken = this.iTokenGateway.findByTokenCommercialAlly(token, commercialAlly);
-        if (completeToken == null) throw new AppException(ConstantException.INVALID_TOKEN);
-        return completeToken;
     }
 
 }
