@@ -26,17 +26,19 @@ public class DebitCreator {
     private final CreditCreator creditCreator;
     private final IExternalBankConsumer creditToExternalUser;
 
-    public void debit(DebitCreate movement, String commercialAlly){
+    public void debit(DebitCreate debit, String commercialAlly){
 
-        BankAccount accountToDebit = debitValidator.validateMovementAndGetAccount(movement, commercialAlly);
+        BankAccount accountToDebit = debitValidator.validateMovementAndGetAccount(debit, commercialAlly);
         // TODO: 17/12/24 Recuperar cuenta de cliente acá, quitarlo de debir validator
-        debitAccount(movement.getAmount(), accountToDebit);
+        debitAccount(debit.getAmount(), accountToDebit);
 
         BankingMovement registeredMovement = iBankingMovementGateway.createMovement(
-                buildMovementModel(movement, accountToDebit, "Debit"));
+                buildMovementModel(debit, accountToDebit, "Debit"));
 
-        Boolean isSuccessful = creditToTargetUser(movement);
+        Boolean isSuccessful = creditToTargetUser(debit);
 
+        //isSuccessful.equals(Boolean.FALSE)
+        log.info("Suessful" + isSuccessful);
         if (isSuccessful.equals(Boolean.FALSE)) {
             reverseDebit(accountToDebit, registeredMovement);
         }
@@ -54,8 +56,9 @@ public class DebitCreator {
         Boolean isOurBank = bank.equals(bmEntityRequest.getTargetBank());
 
         if(Boolean.TRUE.equals(isOurBank)){
-            return creditCreator.byToken(bmEntityRequest.getTargetTokenBass(),
-                    bmEntityRequest.getAmount());
+            Boolean au= creditCreator.byToken(bmEntityRequest.getTargetTokenBass(), bmEntityRequest.getAmount());
+            log.info("Suessful" + au);
+            return au;
         }else {
             return creditToExternalUser.notifyBank();
         }

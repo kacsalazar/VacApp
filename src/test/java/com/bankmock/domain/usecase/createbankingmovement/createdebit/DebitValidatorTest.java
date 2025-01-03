@@ -1,6 +1,7 @@
 package com.bankmock.domain.usecase.createbankingmovement.createdebit;
 
 
+import com.bankmock.domain.model.createbankingmovement.bankAccount.BankAccount;
 import com.bankmock.domain.model.createbankingmovement.bankingMovement.DebitCreate;
 import com.bankmock.domain.model.shared.exception.AppException;
 import com.bankmock.domain.model.shared.exception.ConstantException;
@@ -45,5 +46,59 @@ class DebitValidatorTest {
                 debitCreate, businessPartner));
         assertEquals(ex.getConstant().getCode_error(),
                 ConstantException.NONEXISTENT_ACCOUNT.getCode_error());
+    }
+
+    @Test
+    void testBankAccountNotActivated(){
+        //given
+        DebitCreate debitCreate = DebitCreateMother.build();
+        String businessPartner = "VAQAPP";
+        BankAccount account = DebitCreateMother.buildAccountNotActivated();
+
+        //when
+        when(accountRetrieveByToken.retrieve(debitCreate.getSourceTokenBass(),
+                businessPartner)).thenReturn(account);
+
+        //then
+        AppException ex = assertThrows(AppException.class, () -> debitValidator.validateMovementAndGetAccount(
+                debitCreate, businessPartner));
+        assertEquals(ex.getConstant().getCode_error(),
+                ConstantException.INVALID_ACCOUNT.getCode_error());
+    }
+
+    @Test
+    void testBankAccountWithOutSufficientAmount(){
+        //given
+        DebitCreate debitCreate = DebitCreateMother.build();
+        String businessPartner = "VAQAPP";
+        BankAccount account = DebitCreateMother.buildAccountWithOutSufficientAmount();
+
+        //when
+        when(accountRetrieveByToken.retrieve(debitCreate.getSourceTokenBass(),
+                businessPartner)).thenReturn(account);
+
+        //then
+        AppException ex = assertThrows(AppException.class, () -> debitValidator.validateMovementAndGetAccount(
+                debitCreate, businessPartner));
+        assertEquals(ex.getConstant().getCode_error(),
+                ConstantException.INSUFFICIENT_AMOUNT.getCode_error());
+    }
+
+    @Test
+    void testValidateAccount() {
+
+        //given
+        DebitCreate debitCreate = DebitCreateMother.build();
+        String businessPartner = "VAQAPP";
+        BankAccount account = DebitCreateMother.buildAccount();
+
+        //when
+        when(accountRetrieveByToken.retrieve(debitCreate.getSourceTokenBass(),
+                businessPartner)).thenReturn(account);
+
+        //then
+        BankAccount bankAccount = debitValidator.validateMovementAndGetAccount(debitCreate, businessPartner);
+
+        assertEquals(bankAccount, account);
     }
 }

@@ -6,9 +6,10 @@ import com.bankmock.domain.model.createbankingmovement.bankAccount.IBankAccountG
 import com.bankmock.domain.model.createbankingmovement.bankingMovement.BankingMovement;
 import com.bankmock.domain.model.createbankingmovement.bankingMovement.DebitCreate;
 import com.bankmock.domain.model.createbankingmovement.bankingMovement.IBankingMovementGateway;
-import com.bankmock.domain.model.createtoken.ITokenGateway;
 import com.bankmock.domain.model.shared.exception.AppException;
+import com.bankmock.domain.model.shared.exception.ConstantException;
 import com.bankmock.domain.usecase.createbankingmovement.creditcreate.CreditCreator;
+import createmovementstest.model.DebitCreateMother;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -17,9 +18,11 @@ import org.mockito.MockitoAnnotations;
 
 import java.math.BigDecimal;
 
+import static com.bankmock.domain.usecase.createbankingmovement.createdebit.mapper.DebitCreatorMapper.buildMovementModel;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 
 class DebitCreatorTest {
@@ -34,8 +37,6 @@ class DebitCreatorTest {
     DebitValidator debitValidator;
     @Mock
     IBankAccountGateway iBankAccountGateway;
-    @Mock
-    ITokenGateway iTokenGateway;
     @InjectMocks
     DebitCreator debitCreator;
 
@@ -45,54 +46,66 @@ class DebitCreatorTest {
     }
 
     @Test
-    void testInvalidToken() {
+    void testPaymentToOtherCustomerFailed() {
         //given
-        DebitCreate debitCreate = DebitCreate.builder()
-                .sourceTokenBass("asd1234")
-                .sourceDocNumber("234")
-                .targetBank("BANCO_B")
-                .targetDocNumber("456")
-                .targetTokenBass("qwe7894")
-                .amount(new BigDecimal(200000))
-                .build();
-
-        String commercialAlly = "VAQAPP";
-        BankAccount account = BankAccount.builder()
-                .id(1L)
-                .noAccount("1234")
-                .amount(new BigDecimal(8000000))
-                .dniCustomer("234")
-                .isActive(Boolean.TRUE)
-                .typeAccount("Ahorros")
-                .build();
-
-        BankingMovement movement = BankingMovement.builder()
-                .id(1L)
-                .typeMovement("Debit")
-                .customerAccountId(1L)
-                .amount(new BigDecimal(200000))
-                .token("asd1234")
-                .bank("BANCO_B")
-                .status("SUCCESSFUL")
-                .build();
+        String businessPartner = "VAQAPP";
+        DebitCreate debitCreate =  DebitCreateMother.buildToExternalCustomer();
+        BankAccount account = DebitCreateMother.buildAccount();
+        BankingMovement movement = DebitCreateMother.buildMovement();
 
         //when
-        when(debitValidator.validateMovementAndGetAccount(debitCreate, commercialAlly))
-                .thenReturn(null);
-        when(iBankAccountGateway.findAccountById(1L))
-                .thenReturn(account);
-        when(iBankingMovementGateway.createMovement(movement))
-                .thenReturn(null);
-
-        when(iExternalBankConsumer.notifyBank())
-                .thenReturn(Boolean.FALSE);
-
-        debitCreator.debit(debitCreate, commercialAlly);
+        when(iExternalBankConsumer.notifyBank()).thenReturn(Boolean.FALSE);
+        when(debitValidator.validateMovementAndGetAccount
+                (debitCreate, businessPartner)).thenReturn(account);
+        when(iBankingMovementGateway.createMovement
+                (buildMovementModel(debitCreate, account, "Debit"))).thenReturn(movement);
 
         //then
-        assertThrows(AppException.class, () -> debitCreator
-                .debit(debitCreate, commercialAlly));
+        AppException ex = assertThrows(AppException.class, () -> debitCreator.debit(debitCreate, businessPartner));
+        assertEquals(ex.getConstant().getCode_error(),
+                ConstantException.PAYMENT_FAILED.getCode_error());
+    }
 
+    @Test
+    void testPaymentToExternalCustomerSuccessful(){
+        //given
+        String businessPartner = "VAQAPP";
+        DebitCreate debitCreate =  DebitCreateMother.buildToExternalCustomer();
+        BankAccount account = DebitCreateMother.buildAccount();
+        BankingMovement movement = DebitCreateMother.buildMovement();
+
+        //when
+        when(iExternalBankConsumer.notifyBank()).thenReturn(Boolean.TRUE);
+        when(debitValidator.validateMovementAndGetAccount
+                (debitCreate, businessPartner)).thenReturn(account);
+        when(iBankingMovementGateway.createMovement
+                (buildMovementModel(debitCreate, account, "Debit"))).thenReturn(movement);
+
+        //then
+        debitCreator.debit(debitCreate, businessPartner);
+
+        verify(iBankingMovementGateway, times(1)).updateBankingMovement(movement);
+    }
+
+    @Test
+    void testPaymentToCustomerSuccessful(){
+        //given
+        String businessPartner = "VAQAPP";
+        DebitCreate debitCreate =  DebitCreateMother.build();
+        BankAccount account = DebitCreateMother.buildAccount();
+        BankingMovement movement = DebitCreateMother.buildMovement();
+
+        //when
+        when(debitValidator.validateMovementAndGetAccount
+                (debitCreate, businessPartner)).thenReturn(account);
+        when(iBankingMovementGateway.createMovement
+                (buildMovementModel(debitCreate, account, "Debit"))).thenReturn(movement);
+        when(creditCreator.byToken("token", new BigDecimal(100))).thenReturn(Boolean.TRUE);
+
+        //then
+        debitCreator.debit(debitCreate, businessPartner);
+
+        verify(iBankingMovementGateway, times(1)).updateBankingMovement(movement);
     }
 
 }

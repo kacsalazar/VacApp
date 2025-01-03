@@ -41,7 +41,6 @@ public class DebitValidator {
         if (account.getAmount().compareTo(amountToDebit) < 1) {
             throw new AppException(ConstantException.INSUFFICIENT_AMOUNT);
         }
-        //debitAccount(bankingMovementEntityRequest.getDataInfo().getMovementInfo().getAmount(), account);
     }
 
 }
