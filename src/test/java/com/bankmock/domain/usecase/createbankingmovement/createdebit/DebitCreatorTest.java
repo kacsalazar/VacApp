@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 
 import static com.bankmock.domain.usecase.createbankingmovement.createdebit.mapper.DebitCreatorMapper.buildMovementModel;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
@@ -82,9 +83,8 @@ class DebitCreatorTest {
                 (buildMovementModel(debitCreate, account, "Debit"))).thenReturn(movement);
 
         //then
-        debitCreator.debit(debitCreate, businessPartner);
-
-        verify(iBankingMovementGateway, times(1)).updateBankingMovement(movement);
+        assertDoesNotThrow(() -> debitCreator.debit(debitCreate, businessPartner));
+        verify(iExternalBankConsumer, times(1)).notifyBank();
     }
 
     @Test
@@ -103,9 +103,7 @@ class DebitCreatorTest {
         when(creditCreator.byToken("token", new BigDecimal(100))).thenReturn(Boolean.TRUE);
 
         //then
-        debitCreator.debit(debitCreate, businessPartner);
-
-        verify(iBankingMovementGateway, times(1)).updateBankingMovement(movement);
+        assertDoesNotThrow(() -> debitCreator.debit(debitCreate, businessPartner));
+        verify(creditCreator, times(1)).byToken(any(), any());
     }
-
 }

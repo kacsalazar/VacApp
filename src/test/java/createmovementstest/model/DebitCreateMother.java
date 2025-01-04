@@ -12,6 +12,7 @@ public class DebitCreateMother {
         return DebitCreate.builder()
                 .sourceTokenBass("token")
                 .targetBank("BANCO_A")
+                .targetTokenBass("token")
                 .amount(new BigDecimal(100)).build();
     }
 
